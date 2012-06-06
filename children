@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# Search for children of this class
+
+
+function look_for_children()
+{
+    GREP_OPTIONS=
+
+    tmp=$(egrep -RI --include=*.h 'class[ ]+[A-Za-z][A-Za-z0-9_]*[ ]*:[ ]*[A-Za-z0-9_]*[ ]*'"$1" ./ |\
+        sed -e 's;.*class[ ]*\<\([A-Z][A-Za-z0-9_]*\)\>[ ]*:.*$;\1;')
+    echo "$tmp"
+}
+
+function searcher()
+{
+    echo "Searching for ${1}"
+    classes=$(look_for_children "$1")
+    if [ "$classes" != "" ]
+    then
+        echo
+        for i in $classes
+        do
+            echo -e "\t$i "
+        done
+        echo
+
+        for i in $classes
+        do
+            searcher "$i"
+        done
+    fi
+
+}
+
+searcher "$1"

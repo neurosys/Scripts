@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+
+# Version 0.2
+#
+# By NeuroSys
+#
+# [2012-05-25_17-25-29]
+# - Changed the script so that the indexes are generated based only on the C/C++ files
+#
+
+# cscope gets very shy when he gets to use c:\windows\sort instead of /bin/sort :-p
+PATH=/bin:/usr/bin:$PATH
+
+CTAGS_FILE=vtags
+EMACS_TAGS_FILE=TAGS
+CSCOPE_INDEX_FILE=cscope.out
+CSCOPE_REVERTED_INDEX1=cscope.in.out
+CSCOPE_REVERTED_INDEX2=cscope.po.out
+CSCOPE_SOURCE_FILE_LIST=cscope.files
+
+function rm_if_exists()
+{
+    if [ -n "$1" ] && [ -e "$1" ]
+    then
+        echo -e "\e[1;31mRemoving ${1}\e[0m"
+        rm -f "$1"
+    fi
+}
+
+
+rm_if_exists "$CTAGS_FILE"
+rm_if_exists "$EMACS_TAGS_FILE"
+rm_if_exists "$CSCOPE_INDEX_FILE"
+rm_if_exists "$CSCOPE_REVERTED_INDEX1"
+rm_if_exists "$CSCOPE_REVERTED_INDEX2"
+rm_if_exists "$CSCOPE_SOURCE_FILE_LIST"
+
+# Finding the files that contain the sourcecode that presents interest
+find ./ -regex ".*\.\(cpp\|hpp\|c\|h\|CPP\|HPP\|C\|H\)" -print > "$CSCOPE_SOURCE_FILE_LIST"
+
+echo "Building exuberant-ctags file"
+#ctags -R -o "$CTAGS_FILE" .
+ctags -L "$CSCOPE_SOURCE_FILE_LIST"
+
+echo "Building emacs-tags file"
+#ctags -Re .
+ctags -Le "$CSCOPE_SOURCE_FILE_LIST"
+
+echo "Building cscope file(s)"
+
+
+TMP_FILE_NAME=tmp_file_name_if_you_see_this_and_not_building_cscope_tags_please_remove
+FOLDERS_WITH_SPACE_IN_NAME=source_files_with_space_in_names
+
+# Cscope is dumb, if you fetch him a file containing source file names it gets
+# intimidated by spaces, therefore fetch the directories that have space in
+# them, by command line and the rest trough a file
+
+# Copy the lines that may contain space into another file
+sed -n '/ /p' "$CSCOPE_SOURCE_FILE_LIST" > "$FOLDERS_WITH_SPACE_IN_NAME"
+
+FILE_SIZE=$(du -b "$FOLDERS_WITH_SPACE_IN_NAME" | cut -f1)
+
+if [ "$FILE_SIZE" -eq "0" ]
+then
+    # No paths containing spaces, we may proceed
+    cscope -ubkqv -i "$CSCOPE_SOURCE_FILE_LIST"
+else
+    # Remove the paths with spaces from the default source list
+    sed '/ /d' "$CSCOPE_SOURCE_FILE_LIST" > "$TMP_FILE_NAME"
+    mv "$TMP_FILE_NAME" "$CSCOPE_SOURCE_FILE_LIST"
+
+    # Remove the file names, and preserve only the paths, also enclose them in \"
+    # and add "-s " in front of them, so that each line can be fetched as an
+    # argument to cscope, specifying the aditional path that needs to be indexed
+    sed -n '/ /p' "$FOLDERS_WITH_SPACE_IN_NAME" |\
+        sed -e 's;\/[^\/]*$;/";' -e 's;^;-s ";' |\
+        sort -u > $TMP_FILE_NAME
+    mv "$TMP_FILE_NAME" "$FOLDERS_WITH_SPACE_IN_NAME"
+
+    xargs --verbose -a "$FOLDERS_WITH_SPACE_IN_NAME" cscope -ubkqv -i "$CSCOPE_SOURCE_FILE_LIST"
+fi
+rm_if_exists "$FOLDERS_WITH_SPACE_IN_NAME"
