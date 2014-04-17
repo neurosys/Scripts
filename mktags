@@ -6,6 +6,8 @@
 #
 # [2012-05-25_17-25-29]
 # - Changed the script so that the indexes are generated based only on the C/C++ files
+# [2014-04-04_11-36-30]
+# - Added cc, cxx, CC and HXX extensions to be parsed
 #
 
 # cscope gets very shy when he gets to use c:\windows\sort instead of /bin/sort :-p
@@ -36,11 +38,11 @@ rm_if_exists "$CSCOPE_REVERTED_INDEX2"
 rm_if_exists "$CSCOPE_SOURCE_FILE_LIST"
 
 # Finding the files that contain the sourcecode that presents interest
-find ./ -regex ".*\.\(cpp\|hpp\|c\|h\|CPP\|HPP\|C\|H\)" -print > "$CSCOPE_SOURCE_FILE_LIST"
+find ./ -regex ".*\.\(cpp\|hpp\|c\|cc\|cxx\|c\+\+\|h\|CPP\|HPP\|C\|\CC\|CXX\|C\+\+\|H\)" -print > "$CSCOPE_SOURCE_FILE_LIST"
 
 echo "Building exuberant-ctags file"
 #ctags -R -o "$CTAGS_FILE" .
-ctags -L "$CSCOPE_SOURCE_FILE_LIST"
+ctags -L "$CSCOPE_SOURCE_FILE_LIST" -o "$CTAGS_FILE"
 
 echo "Building emacs-tags file"
 #ctags -Re .
