@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+
+# This script renames all the files in a folder (except the script itself), preserving the extension
+# All the files are renamed to the first characters of the md5 hash of the content, folders are ignored
+# Consecutive runs shouldn't affect anything.
+# Hidden files are ignored
+
+debug=0
+
+# We don't want to rename the current script, do we?
+script_name=$(basename ${BASH_SOURCE[0]})
+for i in *
+do
+    if [[ $debug -eq 1 ]]
+    then
+        echo "> i = '$i'"
+    fi
+
+    # No need to change the dirs
+    if [ -d $i ]
+    then
+        if [[ $debug -eq 1 ]]
+        then
+            echo "> '$i' is a directory, continue..."
+        fi
+        continue
+    fi
+
+    if [ "$i" != "$script_name" ]
+    then
+        # Only take the first 8 characters from the md5 hash
+        md5_name=$(md5sum "$i"  | cut -d ' ' -f1 | cut -b1-8)
+        extension=$(echo "$i" | awk -F . '{ print $NF; }')
+        new_name=${md5_name}.${extension}
+
+        if [[ $debug -eq 1 ]]
+        then
+            echo "> md5_name = $md5_name"
+            echo "> extension = $extension"
+            echo "> new_name = '$new_name'"
+        fi
+
+        if [ $new_name != "$i" ]
+        then
+            if [ -f "$new_name" ]
+            then
+                # The resulting file exists (as an truncated md5 file), maybe
+                # it's case to increase the number of digits that form the name
+                echo "For some reason file '$new_name' already exists (did you just broke md5?)"
+            else
+                echo "Renaming '$i' to '$new_name'"
+                mv "$i" "$new_name"
+            fi
+        else
+            echo "File '$new_name' already exists, moving along"
+        fi
+    fi
+done
