@@ -46,7 +46,7 @@ do
             then
                 # The resulting file exists (as an truncated md5 file), maybe
                 # it's case to increase the number of digits that form the name
-                echo "For some reason file '$new_name' already exists (did you just broke md5?)"
+                echo "Renameing file '$i' For some reason file '$new_name' already exists (did you just broke md5?)"
             else
                 echo "Renaming '$i' to '$new_name'"
                 mv "$i" "$new_name"
