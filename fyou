@@ -1,0 +1,60 @@
+#!/usr/bin/python
+
+import sys
+
+g = [3, 17, 4, 19, 5, 15, 2, 4, 2, 17, 5, 15, 2, 4, 2, 17, 5, 15, 2, 4, 2, 17, 5, 15, 2, 4, 2, 17, 5, 15, 2, 4, 2, 17, 5, 11, 6, 4, 6, 13, 9,  9, 2, 4, 2, 4, 2, 4, 4, 9, 11, 9, 2, 4, 2, 4, 2, 4, 2, 2, 2, 7, 13, 1, 6, 2, 2, 4, 2, 4, 2, 4, 2, 4, 2, 5, 9,  1, 2, 4, 4, 16, 2, 4, 2, 5, 7,  1, 2, 6, 2, 22, 2, 5, 7, 3, 2, 4, 2, 22, 2, 5, 7, 4, 3, 2, 2, 22, 2, 5, 5, 5, 2, 26, 2, 5, 5, 6, 3, 24, 2, 5, 5, 7, 2, 22, 3, 6, 5, 8, 3, 20, 2, 7, 5, 9, 2, 20, 2, 7, 5, 10, 3, 16, 3, 8, 5, 11, 2, 16, 2, 9, 3, 11, 20, 9] 
+
+A, B = '#', ' '
+
+def expand_to_segment(c, times):
+    """Takes an character and repats it n times"""
+    segment = []
+    for i in xrange(times):
+        segment.append(c)
+    return segment
+
+def expand_line(chunk, bbc):
+    """Takes a list describing the line and expands it to a line, with an
+    option for doubling the amount of "rudeness" """
+    line = []
+    tip = A;
+    for i in xrange(1, chunk[0] + 1):
+        tip = A if tip == B else B
+        line += expand_to_segment(tip, chunk[i])
+    output = "".join(line) 
+    if bbc == True:
+        output += "".join(line[::-1])
+    return output
+
+def be_rude(bbc):
+    """Splits the list of rows into manageable chunks and prints the result of the expansion"""
+    i = 0
+    finished = False
+    print("")
+    while finished == False:
+        line = expand_line( g[ i : i + 1 + g[i]] , bbc)
+        print(line)
+        i += g[i] + 1
+        if i >= len(g):
+            finished = True
+    print("")
+
+def parse_input_params(args):
+    """Extract the known parameters, ignore the rest"""
+    global A, B
+    bbc = False
+    for arg in args:
+        if arg.lower() in []:
+            """This one case is special and won't be posted on github :-)"""
+            bbc = True
+            A, B = ':', '.'
+            break
+        if arg in ["--hard", "--deep", "--extra"]:
+            A, B = ' ', '#'
+        elif arg in ["--big-black-cocks", "--bbc", "--gay-orgy"]:
+            bbc = True
+    return bbc
+
+if __name__ == "__main__":
+    bbc = parse_input_params(sys.argv)
+    be_rude(bbc)
