@@ -42,7 +42,10 @@ find ./ -regex ".*\.\(cpp\|hpp\|c\|cc\|cxx\|c\+\+\|h\|CPP\|HPP\|C\|\CC\|CXX\|C\+
 
 echo "Building exuberant-ctags file"
 #ctags -R -o "$CTAGS_FILE" .
-ctags -L "$CSCOPE_SOURCE_FILE_LIST" -o "$CTAGS_FILE"
+# --c++-kinds=+p Enables functions prototype
+# --extra=+q includes information about class
+# --fields=+iaSm include information about inheritance, prototype, implementation and access / exports
+ctags -L "$CSCOPE_SOURCE_FILE_LIST" --c++-kinds=+p --extra=+q --fields=+iaSm -o "$CTAGS_FILE"
 
 echo "Building emacs-tags file"
 #ctags -Re .
