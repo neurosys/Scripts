@@ -8,5 +8,5 @@ make
 make install
 cd $INSTALL_PATH
 cd ..
-stow vim
+stow --no-folding vim
 

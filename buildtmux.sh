@@ -7,4 +7,4 @@ INSTALL_PATH=$HOME/.local/stow/tmux
 make
 make install
 cd $INSTALL_PATH/..
-stow tmux
+stow --no-folding tmux
