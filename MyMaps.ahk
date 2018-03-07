@@ -60,7 +60,7 @@ GetWorkingIntervalOfWeek()
 }
 
 mail_client = C:\Program Files (x86)\Mozilla Thunderbird
-gvim_path = C:\Program Files (x86)\Vim\vim74\gvim
+gvim_path = C:\Program Files (x86)\Vim\vim80\gvim
 emacs_path = D:\Kits\emacs\bin\runemacs
 xcode=
 
