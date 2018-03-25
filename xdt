@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# This would be a script that permits some key automation on linux
+# due to system particularities, it may be required to be tweaked
+
+# Insert current timestamp as if it was entered from keyboard
+time=$(date +%Y-%m-%d_%H-%M-%S)
+delay=14
+sleep 0.3
+xdotool type --delay $delay "$time"
+
+
+
