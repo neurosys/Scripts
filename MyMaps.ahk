@@ -59,9 +59,13 @@ GetWorkingIntervalOfWeek()
     return start " - " end
 }
 
-mail_client = C:\Program Files (x86)\Mozilla Thunderbird
+;mail_client = C:\Program Files (x86)\Mozilla Thunderbird
+mail_client =  C:\Program Files\Microsoft Office\Office16\OUTLOOK.exe
+open_outlook_options = /recycle 
+new_mail_outlook_opts = /c ipm.note
+
 gvim_path = C:\Program Files (x86)\Vim\vim80\gvim
-emacs_path = D:\Kits\emacs\bin\runemacs
+emacs_path = D:\Kits\Editors\emacs\emacs-25.3_1\bin\runemacs.exe
 xcode=
 
 ; Minimize current window
@@ -69,7 +73,7 @@ xcode=
 
 ; shells
 #k::Run cmd.exe
-#+k::Run mintty.exe
+#+k::Run mintty.exe --dir ~
 
 ; editors
 #n::Run %gvim_path%
@@ -85,9 +89,9 @@ xcode=
 }
 
 ; Mail stuff
-#o::Run %mail_client%, , max
+#o::Run %mail_client% %open_outlook_options%, , max
 ; Send email
-#m::Run %office_path% -compose
+#m::Run %mail_client% %new_mail_outlook_opts%
 
 ; Send the week interval
 #+i::
