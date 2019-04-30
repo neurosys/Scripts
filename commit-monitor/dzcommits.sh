@@ -101,7 +101,8 @@ showListOfCommits()
 
 extractCommitId()
 {
-    # That fucking '-u' is for "unbuffered", see below whow I discovered I needed this
+    # That fucking '-u' is for "unbuffered", see below how I discovered I needed this
+    # without it, sed doesn't output the results as soon as they're ready
     # (I know I'll be comming later for that strace command)
     sed -u -e 's/^\([^ ]\+\).*/\1/'
     #strace -e read,write sed -u -e 's/^\([^ ]\+\).*/\1/'
