@@ -30,10 +30,10 @@ displayCmd()
     #xterm -e "tig show $1"
 
     # tig inside tmux inside xterm
-    #xterm -e bash -c "tmux new-session -d -s mySession 'tig' \; attach \;"
-    urxvt -e bash -c "tmux new-session -d -s mySession 'tig' \; attach \;"
-    #gnome-terminal -- tmux new-session -d -s mySession 'tig' \; attach \;
-    #mate-terminal -- tmux new-session -d -s mySession 'tig' \; attach \;
+    #xterm -e bash -c "tmux new-session -d -s mySession 'tig show $1' \; attach \;"
+    urxvt -e bash -c "tmux new-session -d -s mySession 'tig show $1' \; attach \;"
+    #gnome-terminal -- tmux new-session -d -s mySession 'tig show $1' \; attach \;
+    #mate-terminal -- tmux new-session -d -s mySession 'tig show $1' \; attach \;
 }
 
 verifyParameters()
