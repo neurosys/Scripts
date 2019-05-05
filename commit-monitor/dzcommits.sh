@@ -86,7 +86,7 @@ showListOfCommits()
         -m \
         -bg '$commitListWindowBg' \
         -fn '$windowFont' \
-        -e 'onstart=uncollapse,scrollhome;button1=menuprint;button3=exit;button4=scrollup:3;button5=scrolldown:3'"
+        -e 'onstart=uncollapse,scrollhome;entertitle=grabkeys;enterslave=grabkeys;button1=menuprint;button3=exit;button4=scrollup:3;button5=scrolldown:3;key_Escape=ungrabkeys,exit'"
 
     checkForPreexistingWindow
     if [ $? -ne 0 ]
@@ -126,7 +126,7 @@ displayCommitMessage()
         -bg '$commitListWindowBg' \
         -fg '$colorFile' \
         -fn '$windowFont' \
-        -e 'onstart=uncollapse,scrollhome;button1=exec:${detailedViewCmd},exit;button3=exit;button4=scrollup:3;button5=scrolldown:3'"
+        -e 'onstart=uncollapse,scrollhome;entertitle=grabkeys;enterslave=grabkeys;key_Escape=ungrabkeys,exit;button1=exec:${detailedViewCmd},exit;button3=exit;button4=scrollup:3;button5=scrolldown:3'"
     xargs -r -n 1 -L 1 -P 0 -I{} bash -c \
         "( ( echo && $gitCmd {} ) | $dzenCmd ) & " &
 
