@@ -154,36 +154,39 @@ then
     port=
     extractFetchRemoteHostname "protocol" "host" "port" 
     testConnectionByProtocol $protocol ${host} $port 
-    if [ $? -eq 0 ]
+    netCon=$?
+    pullSuccess=
+
+    if [ $netCon -eq 0 ]
     then
         git pull &> /dev/null
-        if [ $? -ne 0 ]
-        then
-            echo " [ Unable to 'git pull' ] "
-            echo "beeep"
-            echo "#FF00FF"
-
-            exit 0
-        else
-            fullLogMessage=$(git log -1 --pretty=format:"%cn %cd %s" --date=relative)
-            briefLogMessage=$(echo "$fullLogMessage" | sed -e "s/^\(.\{$limit\}\).*/\1/g")
-            echo "$briefLogMessage"
-            echo ""
-            displayColor=""
-            selectColorBasedOnTime displayColor
-            echo $displayColor
-        fi
-    else
-            echo " [ Unable to connect ] "
-            echo ""
-            echo "#FF00FF"
-            exit 0
+        pullSuccess=$?
     fi
+
+    fullLogMessage=$(git log -1 --pretty=format:"%cn %cd %s" --date=relative)
+    briefLogMessage=$(echo "$fullLogMessage" | sed -e "s/^\(.\{$limit\}\).*/\1/g")
+
+    if [ $netCon -eq 1 ]
+    then
+        briefLogMessage="[Link Down] $briefLogMessage"
+    else
+        if [ $pullSuccess -eq 1 ]
+        then
+            briefLogMessage="[git down] $briefLogMessage"
+        fi
+    fi
+
+    echo "$briefLogMessage"
+    echo ""
+    displayColor=""
+    selectColorBasedOnTime displayColor
+    echo $displayColor
 else
-    echo "bb=$BLOCK_BUTTON"
+    fullLogMessage=$(git log -1 --pretty=format:"%cn %cd %s" --date=relative)
+    briefLogMessage=$(echo "$fullLogMessage" | sed -e "s/^\(.\{$limit\}\).*/\1/g")
+    echo "$briefLogMessage"
     i3-msg -q exec ~/.bin/commit-monitor/dzcommits.sh $repoPath $nrOfDisplayedCommits $BLOCK_X
 fi
-
 
 #echo "#FF00FF"
 
