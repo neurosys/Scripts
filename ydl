@@ -1,0 +1,143 @@
+#!/bin/bash
+
+function ytdl()
+{
+    local code="$1"
+    local url="$2"
+        #-o "${type}_${code}_%(id)s.%(ext)s"  \
+    youtube-dl \
+        --no-check-certificate     \
+        -f $code                   \
+        $url \
+        | grep "\[download\] Destination: " | sed -e 's/^\[download\] Destination: //'
+}
+
+function getDownloadOptions()
+{
+    youtube-dl --no-check-certificate -F $1
+#    read -r -d '' staticOptions <<'myeof'
+#[youtube] EGNdaBwpB1g: Downloading webpage
+#[youtube] EGNdaBwpB1g: Downloading video info webpage
+#[info] Available formats for EGNdaBwpB1g:
+#format code  extension  resolution note
+#249          webm       audio only DASH audio   64k , opus @ 50k, 1.20MiB
+#250          webm       audio only DASH audio   84k , opus @ 70k, 1.59MiB
+#140          m4a        audio only DASH audio  127k , m4a_dash container, mp4a.40.2@128k, 3.00MiB
+#171          webm       audio only DASH audio  149k , vorbis@128k, 3.12MiB
+#251          webm       audio only DASH audio  168k , opus @160k, 3.17MiB
+#278          webm       256x144    144p   98k , webm container, vp9, 25fps, video only, 2.01MiB
+#160          mp4        256x144    144p  111k , avc1.4d400c, 25fps, video only, 1.82MiB
+#242          webm       426x240    240p  223k , vp9, 25fps, video only, 4.24MiB
+#133          mp4        426x240    240p  251k , avc1.4d4015, 25fps, video only, 3.48MiB
+#243          webm       640x360    360p  410k , vp9, 25fps, video only, 7.66MiB
+#134          mp4        640x360    360p  637k , avc1.4d401e, 25fps, video only, 8.84MiB
+#244          webm       854x480    480p  736k , vp9, 25fps, video only, 13.23MiB
+#135          mp4        854x480    480p 1192k , avc1.4d401e, 25fps, video only, 17.17MiB
+#247          webm       1280x720   720p 1456k , vp9, 25fps, video only, 25.90MiB
+#136          mp4        1280x720   720p 2335k , avc1.4d401f, 25fps, video only, 31.00MiB
+#248          webm       1920x1080  1080p 2616k , vp9, 25fps, video only, 44.46MiB
+#137          mp4        1920x1080  1080p 3885k , avc1.640028, 25fps, video only, 53.96MiB
+#18           mp4        640x360    medium , avc1.42001E, mp4a.40.2@ 96k, 14.66MiB (best)
+#myeof
+#
+#    echo "$staticOptions"
+}
+
+function getAudioOnlyOptions() 
+{
+    local ydlOutput="$1"
+    echo "$ydlOutput" | grep "audio only" | grep opus
+}
+
+function getVideoOnlyOptions()
+{
+    local ydlOutput="$1"
+    echo "$ydlOutput" | grep "video only" | grep mp4
+}
+
+
+# At the moment assume the best is the last
+# also, opt towards mp4 format
+function getBestOption()
+{
+    local videoOptions="$1"
+    echo "$videoOptions" | tail -n 1
+}
+
+function getOptionCode()
+{
+    local optionLine="$1"
+    echo "$optionLine" | awk '{ print $1 ; }'
+}
+
+function getExtension()
+{
+    local optionLine="$1"
+    echo "$optionLine" | awk '{ print $2 ; }'
+}
+
+function getVideoId()
+{
+    local url="$1"
+    echo "$url" | awk -F '?' '{ print $2; }' | sed -e 's/^v=//'
+}
+
+#url=https://www.youtube.com/watch\?v\=EGNdaBwpB1g 
+url=$1
+downloadMp3=0
+
+if [[ "$1" == "mp3" ]]
+then
+    downloadMp3=1
+    url=$2
+fi
+
+options=$(getDownloadOptions $url)
+
+audioOptions=$(getAudioOnlyOptions "$options")
+bestAudioOption=$(getBestOption "$audioOptions")
+audioCode=$(getOptionCode "$bestAudioOption")
+audioExtension=$(getExtension "$bestAudioOption")
+
+if [[ $downloadMp3 -eq 0 ]]
+then
+    videoOptions=$(getVideoOnlyOptions "$options")
+    bestVideoOption=$(getBestOption "$videoOptions")
+    videoCode=$(getOptionCode "$bestVideoOption")
+    videoExtension=$(getExtension "$bestVideoOption")
+fi
+
+videoId=$(getVideoId $url)
+
+echo "$options"
+echo "======================================================"
+echo "$audioCode"
+echo "------------------------------------------------------"
+echo "$videoCode"
+
+if [[ $downloadMp3 -eq 0 ]]
+then
+    videoFileName=$(ytdl $videoCode $url)
+    tmpVideoFileName="video_${videoId}.${videoExtension}"
+    mv "$videoFileName" "$tmpVideoFileName"
+fi
+
+audioFileName=$(ytdl $audioCode $url)
+tmpAudioFileName="audio_${videoId}.${audioExtension}"
+mv "$audioFileName" "$tmpAudioFileName"
+
+if [[ $downloadMp3 -eq 0 ]]
+then
+    newVideoName=$(echo "$videoFileName" | sed -e 's/-'$videoId'//')
+    ffmpeg \
+        -i "$tmpVideoFileName"   \
+        -i "$tmpAudioFileName"   \
+        -c:v copy -c:a aac -strict experimental "${newVideoName}"
+
+    echo "$newVideoName"
+else
+    newMp3Name=$(echo "$audioFileName" | sed -e 's/-'${videoId}.${audioExtension}'/.mp3/')
+    ffmpeg -i "$tmpAudioFileName" -acodec libmp3lame -aq 4 "$newMp3Name"
+fi
+
+ 
