@@ -9,7 +9,7 @@ A, B = '#', ' '
 def expand_to_segment(c, times):
     """Takes an character and repats it n times"""
     segment = []
-    for i in xrange(times):
+    for i in range(times):
         segment.append(c)
     return segment
 
@@ -18,7 +18,7 @@ def expand_line(chunk, bbc):
     option for doubling the amount of "rudeness" """
     line = []
     tip = A;
-    for i in xrange(1, chunk[0] + 1):
+    for i in range(1, chunk[0] + 1):
         tip = A if tip == B else B
         line += expand_to_segment(tip, chunk[i])
     output = "".join(line) 
