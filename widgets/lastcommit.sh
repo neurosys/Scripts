@@ -6,8 +6,8 @@
 # - 
 
 repoPath=$1
-limit=${2:-70}
-nrOfDisplayedCommits=20
+limit=${2:-100}
+nrOfDisplayedCommits=40
 
 cd $repoPath
 
@@ -185,7 +185,8 @@ else
     fullLogMessage=$(git log -1 --pretty=format:"%cn %cd %s" --date=relative)
     briefLogMessage=$(echo "$fullLogMessage" | sed -e "s/^\(.\{$limit\}\).*/\1/g")
     echo "$briefLogMessage"
-    i3-msg -q exec ~/.bin/commit-monitor/dzcommits.sh $repoPath $nrOfDisplayedCommits $BLOCK_X
+    i3-msg -q exec ~/.bin/widgets/dzcommits.sh $repoPath $nrOfDisplayedCommits $BLOCK_X
+    #echo "BLOCK_X=$BLOCK_X" > /home/camza/.bin/commit-monitor/dbg.txt
 fi
 
 #echo "#FF00FF"

@@ -20,11 +20,15 @@ colorAuthor="#FF0000"
 colorDate="#00FF00"
 colorText="#FFFFFF"
 colorBranch="#00FFFF"
-colorFile="#0040F0"
+#colorFile="#0040F0" # Blue...
+colorFile="#00FF00"
 
 lockFile="/var/tmp/${USER}-git-dzen-history-lock-cmd"
 
 cd $repoPath
+
+. ~/.bin/widgets/xutils.sh
+
 
 displayTitle()
 {
@@ -86,7 +90,7 @@ showListOfCommits()
         -m \
         -bg '$commitListWindowBg' \
         -fn '$windowFont' \
-        -e 'onstart=uncollapse,scrollhome;entertitle=grabkeys;enterslave=grabkeys;button1=menuprint;button3=exit;button4=scrollup:3;button5=scrolldown:3;key_Escape=ungrabkeys,exit'"
+        -e 'onstart=uncollapse,scrollhome;entertitle=grabkeys;enterslave=grabkeys;leaveslave=ungrabkeys;leavetitle=ungrabkeys;button1=menuprint;button3=exit;button4=scrollup:3;button5=scrolldown:3;key_Escape=ungrabkeys,exit'"
 
     checkForPreexistingWindow
     if [ $? -ne 0 ]
@@ -115,7 +119,7 @@ displayCommitMessage()
         --date=short \
         --pretty=format:\"^fg($colorCommitID)%h ^fg($colorDate)%cd^fg() [^fg($colorAuthor)%cn^fg()] %d %n%n^fg($colorBranch)%s^fg()%n%n\" --decorate --name-only -n 1 "
 
-    local detailedViewCmd="~/.bin/commit-monitor/dzdisplaycommit.sh {} $lockFile"
+    local detailedViewCmd="~/.bin/widgets/dzdisplaycommit.sh {} $lockFile"
 
     local dzenCmd="dzen2 \
         -p \
@@ -126,7 +130,7 @@ displayCommitMessage()
         -bg '$commitListWindowBg' \
         -fg '$colorFile' \
         -fn '$windowFont' \
-        -e 'onstart=uncollapse,scrollhome;entertitle=grabkeys;enterslave=grabkeys;key_Escape=ungrabkeys,exit;button1=exec:${detailedViewCmd},exit;button3=exit;button4=scrollup:3;button5=scrolldown:3'"
+        -e 'onstart=uncollapse,scrollhome;entertitle=grabkeys;enterslave=grabkeys;leaveslave=ungrabkeys;leavetitle=ungrabkeys;key_Escape=ungrabkeys,exit;button1=exec:${detailedViewCmd},exit;button3=exit;button4=scrollup:3;button5=scrolldown:3'"
     xargs -r -n 1 -L 1 -P 0 -I{} bash -c \
         "( ( echo && $gitCmd {} ) | $dzenCmd ) & " &
 
@@ -134,6 +138,7 @@ displayCommitMessage()
 
 main()
 {
+    adjustCoordinateToFitInMonitor $x_coordinate $windowWidth x_coordinate 
     commits=$( displayTitle ; extractCommits | applyColorMarkupOnCommits ) 
 
     echo "$commits" | showListOfCommits \
