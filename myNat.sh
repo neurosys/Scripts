@@ -37,5 +37,10 @@ echo 1 > /proc/sys/net/ipv4/ip_forward
 # Enable NAT
 iptables -t nat -A POSTROUTING -o $shared_nic -j MASQUERADE
 
+iptables -A INPUT -i $shared_nic -m state --state RELATED,ESTABLISHED -j ACCEPT
+
+iptables -A FORWARD -j ACCEPT
+
+
 #
-iptables -F
+#iptables -F
