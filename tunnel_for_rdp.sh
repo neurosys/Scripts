@@ -15,5 +15,7 @@ else
 fi
 
 
+echo socat tcp-listen:${LOCAL_LISTENING_PORT},reuseaddr,fork tcp:${DESTINATION_IP}:3389
 socat tcp-listen:${LOCAL_LISTENING_PORT},reuseaddr,fork tcp:${DESTINATION_IP}:3389
+
 
