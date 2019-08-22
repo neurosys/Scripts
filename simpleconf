@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+# Usage:
+# confreader get [-c <config file>] -l <layer1:layer2:layer3: ... :layerN>
+# will list all the keys in layerN
+# The last element in the layer is considered to be the value
+#
+# -c <config file> can be omited and it will be loaded from the global variable MY_GLOBAL_CONFIG_REPO
+
+
+while [ -n "$1" ]
+do
+    case "$1" in
+        "-c")
+            # Config
+            configFile="$2"
+            shift
+            ;;
+        "-l")
+            layer="$2"
+            shift
+            ;;
+    esac
+    shift
+done
+
+if [ -z "$configFile" ]
+then
+    configFile="$MY_GLOBAL_CONFIG_REPO"
+fi
+
+#echo "$configFile"
+#echo "$layer"
+
+cat "$configFile" | grep -v "^#" | grep -v "^[[:space:]]*$" | grep "$layer" | sed -e 's/'"$layer":'//'
+
+
+
