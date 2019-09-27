@@ -29,10 +29,20 @@ then
     configFile="$MY_GLOBAL_CONFIG_REPO"
 fi
 
+
 #echo "$configFile"
 #echo "$layer"
 
-cat "$configFile" | grep -v "^#" | grep -v "^[[:space:]]*$" | grep "$layer" | sed -e 's/'"$layer":'//'
+configLayer=$(cat "$configFile" | grep -v "^#" | grep -v "^[[:space:]]*$" | grep "$layer:" )
+
+if [[ -n $layer ]]
+then
+    layer="${layer}:"
+    echo "$configLayer" | sed -e 's/'"$layer"'//'
+else
+    echo "$configLayer"
+fi
+
 
 
 
