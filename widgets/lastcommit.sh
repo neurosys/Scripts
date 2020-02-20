@@ -86,8 +86,6 @@ selectColorBasedOnTime()
     local nrOfUnits=$(echo $timeOfLastCommit | awk '{ print $1 }')
     local color=
 
-    echo $units > /home/camza/color.txt
-    echo $nrOfUnits >> /home/camza/color.txt
     case $units in
         "minutes")
             case $nrOfUnits in
