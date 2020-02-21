@@ -11,6 +11,14 @@ nrOfDisplayedCommits=40
 
 cd $repoPath
 
+trace()
+{
+    if [ $TRACE -eq 1 ]
+    then
+        echo "TRACE: " $1 >> ~/${0}.trace
+    fi
+}
+
 extractFetchRemoteHostname()
 {
     local resProtocol=$1
@@ -147,6 +155,7 @@ selectColorBasedOnTime()
 
 if [ "$BLOCK_BUTTON" != "1" ]
 then
+    trace "No block button"
     protocol=
     host=
     port=
@@ -155,6 +164,7 @@ then
     netCon=$?
     pullSuccess=
 
+    trace "Extracted port '${port}' protocol '${protocol}' and host '${host}'"
     if [ $netCon -eq 0 ]
     then
         git pull &> /dev/null
