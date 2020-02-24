@@ -20,6 +20,8 @@ dzenDisplay()
 
 
 content=
+oldIFS=$IFS
+IFS=$'\n'
 while IFS= read -r line
 do
     if [ "$line" == "" ] 
@@ -28,6 +30,7 @@ do
     fi
     content=$(echo "$content" ; echo $line)
 done
+IFS=$oldIFS
 
 
 
