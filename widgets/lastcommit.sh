@@ -13,7 +13,7 @@ cd $repoPath
 
 trace()
 {
-    if [ $TRACE -eq 1 ]
+    if [ -n "$TRACE" ] && [ $TRACE -eq 1 ]
     then
         echo "TRACE: " $1 >> ~/${0}.trace
     fi
@@ -37,6 +37,8 @@ extractFetchRemoteHostname()
 
     # Remove the // from after the protocol name and username if there is any
     host=$(echo $host | sed -e 's;^//;;' | sed -e 's/.*@//' )
+    # Remove the path from the hostname
+    host=$(echo "$host" | grep -o "^[^/]\+")
     eval "$resHost='$host'"
 
     # Remove any path from the port
