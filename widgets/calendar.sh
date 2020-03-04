@@ -70,6 +70,7 @@ addZeroInFront()
 
 createTemplateFile()
 {
+    USER=$(whoami)
     tmpTaskFile="/var/tmp/$USER-task-warrior-${1}.tmp"
     touch $tmpTaskFile
     echo "due: ${1}-$(addZeroInFront $2)-$(addZeroInFront $3)"  >> $tmpTaskFile
@@ -82,6 +83,8 @@ if [ -z $1 ]
 then
     date '+%Y-%m-%d'
 
+    BLOCK_BUTTON=${BLOCK_BUTTON:-1}
+    BLOCK_X=${BLOCK_X:-0}
     adjustCoordinateToFitInMonitor $BLOCK_X $windowWidth BLOCK_X 
     if [ $BLOCK_BUTTON == "1" ]
     then
