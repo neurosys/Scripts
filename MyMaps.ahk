@@ -32,6 +32,19 @@ Max(a,b)
     return b
 }
 
+SlowType(text, time)
+{
+    StringSplit, my_array, text
+    SetKeyDelay
+
+    Loop, % my_array%0%
+    {
+        x := my_array%A_Index%
+        Send  %x%
+        Sleep %time% ; miliseconds
+    }
+}
+
 ; a - day_of_week
 ; b - reference day
 Delta(a, b)
