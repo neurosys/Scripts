@@ -65,8 +65,13 @@ function prepareCommandLine() {
     fi
 }
 
+function adjustLogFileName() {
+    logFile=output_$(date +%F_%H-%M-%S).out
+}
+
 function download() {
     local url=$1
+    adjustLogFileName
     prepareCommandLine
     doDownload $1
 }
