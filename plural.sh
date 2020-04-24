@@ -35,7 +35,7 @@ function doDownload() {
         $playListStart                                         \
         -o ${outputFilePrefix}'%(playlist_title)s/%(chapter_number)s - %(chapter)s/%(playlist_index)s-%(title)s.%(ext)s' \
         $1 2>&1 | tee -a $logFile
-    errCode=$?
+    errCode=${PIPESTATUS[0]}
     if [[ $errCode -ne 0 ]]
     then
         echo "youtube-dl exited with code $errCode"
