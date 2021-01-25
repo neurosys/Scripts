@@ -13,7 +13,7 @@ MIN_NR_OF_ARGS=4
 
 function help() {
     echo "
-     mkfilefs.sh --file <file fs> --size <size> 
+     createfs.sh --file <file name> --size <size> 
          size units M, G
      --encrypt (encrypted)
      --fstype <filesystem>
