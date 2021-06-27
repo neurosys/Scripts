@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
 
-vlc v4l2:// :input-slave=alsa:// :v4l-vdev="/dev/video0"
+# Open the webcam to see how beautiful you are
+
+# To capture sound with alsa add :input-slave=alsa:// 
+
+vlc v4l2:// :v4l-vdev="/dev/video0"
 
