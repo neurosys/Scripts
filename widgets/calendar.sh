@@ -2,12 +2,16 @@
 
 # long live xfontsel
 #windowFont="Ubuntu Mono derivative Powerline" 
-windowFont="-*-bitstream vera sans mono-*-*-*-*-*-*-*-*-*-*-*-*" 
+#windowFont="-*-bitstream vera sans mono-*-*-*-*-*-*-*-*-*-*-*-*" 
+windowFont="-*-fira mono-*-*-*-*-17-*-*-*-*-*-*-*" 
+#windowFont="Ubuntu Mono derivative Powerline" 
 windowBg="#444444"
 windowWidth=210
 
 weekendMarkup='#96A0DF'
 todayMarkup='#FF0000'
+
+BLOCK_X=
 
 . ~/.bin/widgets/xutils.sh
 
@@ -30,12 +34,12 @@ formatMonth()
     d=$(date '+%Y %m ' --date="15 $i month")
     if [ $i -eq 0 ]
     then
-        cal -m $(date '+%d %m %Y' --date="15 $i month") | calformat -w "^fg($weekendMarkup)" -we "^fg()" -t "^fg($todayMarkup)" -te "^fg()" --today $(date +%-d) | \
-            sed -e "s:\(\<[0-9]\{1,2\}\>\):^ca(1, ~/.bin/widgets/calendar.sh ${d} \1 )\1^ca():g" 
+        cal -m $(date '+%d %m %Y' --date="15 $i month") | calformat -w "^fg($weekendMarkup)" -we "^fg()" -t "^fg($todayMarkup)" -te "^fg()" --today $(date +%-d) #| \
+            #sed -e "s:\(\<[0-9]\{1,2\}\>\):^ca(1, ~/.bin/widgets/calendar.sh ${d} \1 )\1^ca():g" 
             #sed -e 's:\(\<[0-9]\{1,2\}\>\):^ca(1, gvim -c Calendar ~/vimwiki/diary/'$d'\1.wiki )\1^ca():g' 
     else
-        cal -m $(date '+%d %m %Y' --date="15 $i month") | calformat -w "^fg($weekendMarkup)" -we "^fg()" | \
-            sed -e "s:\(\<[0-9]\{1,2\}\>\):^ca(1, ~/.bin/widgets/calendar.sh ${d} \1 )\1^ca():g" 
+        cal -m $(date '+%d %m %Y' --date="15 $i month") | calformat -w "^fg($weekendMarkup)" -we "^fg()" # | \
+            #sed -e "s:\(\<[0-9]\{1,2\}\>\):^ca(1, ~/.bin/widgets/calendar.sh ${d} \1 )\1^ca():g" 
             #sed -e 's:\(\<[0-9]\{1,2\}\>\):^ca(1, gvim -c Calendar ~/vimwiki/diary/'$d'\1.wiki )\1^ca():g' 
     fi
 }
@@ -79,8 +83,26 @@ createTemplateFile()
     echo $tmpTaskFile
 }
 
-if [ -z $1 ]
-then
+parseArguments()
+{
+    while [[ -n $1 ]]
+    do
+        case $1 in
+            "-x")
+                shift
+                BLOCK_X=$1
+                ;;
+            "time")
+                date "+%Y-%m-%d    %H:%M:%S"
+                exit 0
+                ;;
+        esac
+        shift
+    done
+}
+
+parseArguments $*
+
     date '+%Y-%m-%d'
 
     BLOCK_BUTTON=${BLOCK_BUTTON:-1}
@@ -89,9 +111,11 @@ then
     if [ $BLOCK_BUTTON == "1" ]
     then
         # calformat is in my confs repository
-        (echo "" ; for i in {-1..3} ; do formatMonth $i ; done) | displayFullCalendar
+        (echo "" ; for i in {-1..12} ; do formatMonth $i ; done) | displayFullCalendar
     fi
-else
+
+exit 0
+
     echo "$*"
     # $1 - Year
     # $2 - Month
@@ -100,7 +124,6 @@ else
     urxvt -e bash -c "tmux new-session -d -s mySession 'vim $templateFile' \; attach \;"  
     extractDetails $templateFile 
     rm -f $templateFile
-fi
 
 
 
