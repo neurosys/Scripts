@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-output="/home/neurosys/debug_i3blocks.txt"
-echo "=========================================================================================" >> $output
-env >> $output
+#output="/home/neurosys/debug_i3blocks.txt"
+#echo "=========================================================================================" >> $output
+#env >> $output
 
 # BLOCK_BUTTON 1 (left click)
 # BLOCK_BUTTON 2 (middle click)
