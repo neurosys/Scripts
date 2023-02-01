@@ -91,7 +91,8 @@ case $1 in
         exit 0
         ;;
     *)
-        pamixer --get-volume
+        #pamixer --get-volume
+        pulsemixer --get-volume | awk '{ print $1 }'
         if [ "$BLOCK_BUTTON" != "1" ]
         then
             exit 0
