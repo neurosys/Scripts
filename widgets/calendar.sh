@@ -2,8 +2,8 @@
 
 # long live xfontsel
 #windowFont="Ubuntu Mono derivative Powerline" 
-#windowFont="-*-bitstream vera sans mono-*-*-*-*-*-*-*-*-*-*-*-*" 
-windowFont="-*-fira mono-*-*-*-*-17-*-*-*-*-*-*-*" 
+windowFont="-*-bitstream vera sans mono-*-*-*-*-*-*-*-*-*-*-*-*" 
+#windowFont="-*-fira mono-*-*-*-*-17-*-*-*-*-*-*-*" 
 #windowFont="Ubuntu Mono derivative Powerline" 
 windowBg="#444444"
 windowWidth=210
@@ -34,11 +34,11 @@ formatMonth()
     d=$(date '+%Y %m ' --date="15 $i month")
     if [ $i -eq 0 ]
     then
-        cal -m $(date '+%d %m %Y' --date="15 $i month") | calformat -w "^fg($weekendMarkup)" -we "^fg()" -t "^fg($todayMarkup)" -te "^fg()" --today $(date +%-d) #| \
+        mcal -m $(date '+%d %m %Y' --date="15 $i month") | calformat -w "^fg($weekendMarkup)" -we "^fg()" -t "^fg($todayMarkup)" -te "^fg()" --today $(date +%-d) #| \
             #sed -e "s:\(\<[0-9]\{1,2\}\>\):^ca(1, ~/.bin/widgets/calendar.sh ${d} \1 )\1^ca():g" 
             #sed -e 's:\(\<[0-9]\{1,2\}\>\):^ca(1, gvim -c Calendar ~/vimwiki/diary/'$d'\1.wiki )\1^ca():g' 
     else
-        cal -m $(date '+%d %m %Y' --date="15 $i month") | calformat -w "^fg($weekendMarkup)" -we "^fg()" # | \
+        mcal -m $(date '+%d %m %Y' --date="15 $i month") | calformat -w "^fg($weekendMarkup)" -we "^fg()" # | \
             #sed -e "s:\(\<[0-9]\{1,2\}\>\):^ca(1, ~/.bin/widgets/calendar.sh ${d} \1 )\1^ca():g" 
             #sed -e 's:\(\<[0-9]\{1,2\}\>\):^ca(1, gvim -c Calendar ~/vimwiki/diary/'$d'\1.wiki )\1^ca():g' 
     fi
@@ -104,8 +104,13 @@ parseArguments()
 parseArguments $*
 
     date '+%Y-%m-%d'
+    exit 0
 
     BLOCK_BUTTON=${BLOCK_BUTTON:-1}
+    if [[ $BLOCK_BUTTON -eq -1 ]]
+    then
+        exit 0
+    fi
     BLOCK_X=${BLOCK_X:-0}
     adjustCoordinateToFitInMonitor $BLOCK_X $windowWidth BLOCK_X 
     if [ $BLOCK_BUTTON == "1" ]
