@@ -5,6 +5,14 @@ case $BLOCK_BUTTON in
         # Left click
         playerctl -p spotify play-pause
         ;;
+    2)
+        # Middle click
+        playerctl -p spotify loop Playlist
+        ;;
+    3)
+        # Right click
+        playerctl -p spotify loop Track
+        ;;
     4)
         playerctl -p spotify previous
         # Scroll up
