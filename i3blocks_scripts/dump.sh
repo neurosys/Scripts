@@ -78,16 +78,17 @@ case 1 in
         ;;
 esac
 
-volBarSize=10
-volLevel=$((vol / volBarSize))
-#volLevel=$(echo $vol | awk '{ printf "%d", $1 / 10 }')
+volBarSize=20
+maxVolPercent=100
+volBarUnit=$((maxVolPercent / volBarSize)) # How much toes a unit of the bar represent
+volLevel=$((vol / volBarUnit)) # How much of the bar we have filled
 #"-----|-----"
 volBar="<span foreground=\"$color\">"
 
 extraLevel=0 # How much are we over 100%
 if [[ $volLevel -gt $volBarSize ]]
 then
-    extraLevel=$((volLevel - volBarSize))
+    extraLevel=$(((vol - maxVolPercent) / volBarUnit))
 fi
 
 
