@@ -36,17 +36,69 @@ function isMuted() {
     pulsemixer --get-mute
 }
 
-#color1=#
+colorA0=#00FF00
+colorA1=#50FF00
+colorA2=#A0FF00
+colorB0=#FFFF00
+colorB1=#FFA000
+colorB2=#FF5000
+colorC0=#FF0000
+#colorC1=
+#colorC2=
+#colorC3=
+
+color=#00FF00
 
 vol=$(getVolumeLevel)
-volLevel=$(echo $vol | awk '{ printf "%d", $1 / 10}')
-#"-----|-----"
-volBarSize=10
-volBar="<span foreground=\"#00FF00\">"
 
-for (( i=0; i<volLevel; i++ ))
+case 1 in
+    $(($vol <= 30)))
+        color=$colorA0
+        ;;
+    $(($vol <= 40)))
+        color=$colorA1
+        ;;
+    $(($vol <= 50)))
+        color=$colorA2
+        ;;
+    $(($vol <= 60)))
+        color=$colorB0
+        ;;
+    $(($vol <= 70)))
+        color=$colorB1
+        ;;
+    $(($vol <= 80)))
+        color=$colorB2
+        ;;
+    $(($vol <= 90)))
+        color=$colorC0
+        ;;
+    $(($vol > 90)))
+        color=$colorC0
+        ;;
+esac
+
+volBarSize=10
+volLevel=$((vol / volBarSize))
+#volLevel=$(echo $vol | awk '{ printf "%d", $1 / 10 }')
+#"-----|-----"
+volBar="<span foreground=\"$color\">"
+
+extraLevel=0 # How much are we over 100%
+if [[ $volLevel -gt $volBarSize ]]
+then
+    extraLevel=$((volLevel - volBarSize))
+fi
+
+
+for (( i=0; i<volLevel && i < volBarSize; i++ ))
 do
-    volBar+="-"
+    if [[ $extraLevel -gt 0 && $i -le $extraLevel ]]
+    then
+        volBar+="="
+    else
+        volBar+="-"
+    fi
 done
 
 volBar+="</span>"
