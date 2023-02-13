@@ -78,7 +78,7 @@ case 1 in
         ;;
 esac
 
-volBarSize=20
+volBarSize=10
 maxVolPercent=100
 volBarUnit=$((maxVolPercent / volBarSize)) # How much toes a unit of the bar represent
 volLevel=$((vol / volBarUnit)) # How much of the bar we have filled
