@@ -155,6 +155,12 @@ function main() {
         exit 1
     fi
 
+    if [[ $UID -ne 0 ]]
+    then
+        echo "You need to run as root"
+        exit 1
+    fi
+
     parseArguments $*
 
     allocateEmptyFile
