@@ -1,0 +1,353 @@
+#!/usr/bin/env bash
+
+# xrandr --output eDP-1 --off --left-of HDMI-1-0 --output HDMI-1-0 --auto --left-of DP-1 --output DP-1 --auto
+
+# .mymonitors format should be
+# <monitor-name> on|off
+# 
+
+# Read ~/.mymonitors to determine the order of the monitors (first line is the left most monitor)
+# - check all monitors are present, if a mismatch... replace the missing one with the one found (?!?)
+# - if the only monitor present is specified as off, put it on (we must interract somehow with the os, right?)
+#
+# If no ~/.mymonitors is present generate one from what xrandr shows as connected
+#
+# Cycle a monitor off/on to get rid of stuff that may get initialized incorrectly (points middle finger towards nvidia...)
+#
+# Tell which monitors are connected (like `xrandr | grep -i connected`)
+#
+# Run with a different config file
+
+configFile=~/.mymonitors
+MIN_NR_OF_ARGS=1
+PROJECT_NAME=xmon
+
+function assertXrandrExistance() {
+    which xrandr &> /dev/null
+    if [[ $? -ne 0 ]]
+    then
+        echo "xrandr not found"
+        exit 1
+    fi
+}
+
+function getConnectedMonitors() {
+    xrandr | grep -i "\<connected\>" | cut -d' ' -f1
+}
+
+# Reads the monitors from the configuration
+function getMonitorsConfiguration() {
+    if [[ -f "$configFile" ]]
+    then
+        cat $configFile
+    fi
+}
+
+
+
+function turnOffMonitor() {
+    local name=$1
+    xrandr --output $name --off
+}
+
+function getParamForState() {
+    local state=$1
+    if [[ "$state" == "on" ]]
+    then
+        echo "--auto"
+    else
+        echo "--off"
+    fi
+}
+
+# Build an xrandr cmd from:
+# <monitor-name> <state>
+# ...
+# <monitor-name> <state>
+function buildXrenderCmd() {
+    local monitors="$1"
+    local cmd=""
+    local return=$2
+
+    while IFS=" " read name state
+    do
+        param=$(getParamForState $state)
+        if [[ -z $cmd ]]
+        then
+            cmd="xrandr --output ${name} ${param}"
+        else
+            cmd="${cmd} --left-of ${name} --output ${name} ${param}"
+        fi
+    done < <(echo "$monitors")
+    eval "$return='${cmd}'"
+}
+
+# This is a workaround to not using arrays, because I'm lazy atm and rather unconfortable with arrays
+function getNthMonitor() {
+    local monitors="$1"
+    local idx=$2
+
+    local i=1
+    for monName in $monitors
+    do
+        if [[ $idx -eq $i ]]
+        then
+            echo "${monName}"
+            return
+        fi
+        i=$((i + 1))
+    done
+}
+
+# getDifference returns the element from A that are not in B
+# for example 1,2,3,4,5 and 1,3,2 will be 4,5
+function getDifference() {
+    local a="$1"
+    local b="$2"
+    local out="$3"
+
+    local aSplit=$(echo "$a" | sed -e 's/,/ /g')
+    local bSplit=$(echo "$b" | sed -e 's/,/ /g')
+
+    local result
+    for ia in $aSplit
+    do
+        local found=0
+        for ib in $bSplit
+        do
+            if [[ "$ib" == "$ia" ]]
+            then
+                found=1
+            fi
+        done
+
+        if [[ $found -eq 0 ]]
+        then
+            if [[ -z "$result" ]]
+            then
+                result="$ia"
+            else
+                result="${result} $ia"
+            fi
+        fi
+    done
+
+    eval "$out='$result'"
+}
+
+# For a list of monitor names, get a layout
+# user is presented with a list of monitors:
+# > 1. <monitor-name>
+# > ...
+# > n. <monitor-name>
+# User is expected to introduce a list of monitors he wants to see, ordered from left to right
+# < 1,3,2
+# and then the monitors will be ordered that way.
+# All monitors not presented in the list user entered, will be off
+function customLayout() {
+    local monitorNames="$1"
+    local return=$2
+
+    echo -e "Please enter the monitors you want to have turned on, in order, from left to right (the rest will be off)"
+    local idx=1
+    local monitorIds=""
+    for monName in $monitorNames
+    do
+        echo "${idx}. ${monName}"
+        idx=$((idx + 1))
+    done
+    read -p "Monitors: " order
+    local noAvailableMontiors=$((idx - 1))
+    local listOfMonitorIDs=$(seq 1 $noAvailableMontiors)
+
+    local orderList=$(echo "$order" | sed -e 's/,/\n/g')
+    local monitorList=""
+    local cmd=""
+    for monitorNumber in $orderList
+    do
+        name=$(getNthMonitor "$monitorNames" $monitorNumber)
+        if [[ -z "$cmd" ]]
+        then
+            cmd="xrandr --output $name --auto"
+        else
+            cmd="${cmd} --left-of $name --output $name --auto"
+        fi
+    done
+
+    # Turn off the rest of the displays
+    getDifference "$listOfMonitorIDs" "$orderList" toTurnOff
+
+    for mon in $toTurnOff 
+    do
+        if [[ -z "$cmd" ]]
+        then
+            cmd="xrandr "
+        fi
+        m=$(getNthMonitor "$monitorNames" $mon)
+        cmd="${cmd} --output ${m} --off"
+    done
+
+    eval "$return='$cmd'"
+}
+
+
+# Extract just the names from a config-like set of data
+# Expects a structure of one or more lines of the form: "<monitor-name> <state>"
+# Returns a list of monitor names
+function monitorNamesFromConfig() {
+    local monCfg="$1"
+    local return="$2"
+    local res=""
+
+    while IFS=" " read name state
+    do
+        res=$(echo -e "${res}\n${name}")
+    done < <(echo "$monCfg")
+
+    eval "$return='$res'"
+}
+
+# Will create a config like the one from
+# Expects a list of monitors that should be turned on, in the order (left to right) they should be enabled, and a list of all the monitors available
+# the first list
+function buildConfigForMonitors() {
+    echo "Nothing" >> /dev/null
+}
+
+
+function printHelp() {
+    helpMsg="
+    ${PROJECT_NAME} <CMD> [OPTIONS]
+
+    CMD
+        auto        Puts all connected monitors on in whatever order they are connected.
+        config      Generates a config for the connected monitors
+        cycle=MON   Prompts the user to enter a monitor which will be cycled, or uses the monitor provided
+        help        Displays this help text
+        reorder     Prompts the user for a custom order for the connected monitors.
+        show        Lists connected monitors
+    "
+
+    echo "$helpMsg"
+}
+
+# autoOrder will just turn on all monitors in the order they are provided (the order of xrandr output)
+function autoOrder() {
+    local monitors="$1"
+    local output="$2"
+
+    local cmd=""
+    for mon in $monitors
+    do
+        if [[ -z "$cmd" ]]
+        then
+            cmd="xrandr ${cmd} --output ${mon} --auto "
+        else
+            cmd="${cmd} --left-of ${mon} --output ${mon} --auto "
+        fi
+    done
+
+    eval "$output='$cmd'"
+}
+
+# cycleMonitorPower tur off a monitor, sleep and then power it back on
+function cycleMonitorPower() {
+    local monitors="$1"
+    local sleepDuration=${2:-3}
+
+    local idx=1
+    while IFS=" " read name state
+    do
+        echo "${idx}. ${name}"
+        idx=$((idx + 1))
+    done < <(echo "$monitors")
+    read -p "Choose monitor to cycle: " id
+
+    idx=1
+    local monitorName=""
+    while IFS=" " read name state
+    do
+        if [[ $idx -eq $id ]]
+        then
+            monitorName="$name"
+        fi
+        idx=$((idx + 1))
+    done < <(echo "$monitors")
+
+    echo "cycling monitor $monitorName"
+    xrandr --output $monitorName --off
+    sleep $sleepDuration
+
+
+    buildXrenderCmd "$monitors" xCmd
+    eval "$xCmd"
+}
+
+function parseArguments() {
+    if [[ $# -lt $MIN_NR_OF_ARGS ]]
+    then
+        printHelp
+        exit 0
+    fi
+
+    while [[ -n $1 ]]
+    do
+        case $1 in
+            "auto") # Turn on all monitors
+                monitorNames=$(getConnectedMonitors)
+                autoOrder "$monitorNames" xrandrCmd
+                echo $xrandrCmd
+                eval "$xrandrCmd"
+                ;;
+            "config")
+                monitorCfg=$(getMonitorsConfiguration)
+                echo "$monitorCfg"
+                eval "$monitorCfg"
+                ;;
+            "cycle")
+                monitorCfg=$(getMonitorsConfiguration)
+                cycleMonitorPower "$monitorCfg"
+                ;;
+            "cycle=*")
+                ;;
+            "help")
+                printHelp
+                exit 0
+                ;;
+            "custom")
+                monitorNames=$(getConnectedMonitors)
+                # Turn on just a subset of monitors and put them in a particular order
+                customLayout "$monitorNames" monitorOrder
+                echo $monitorOrder
+                eval "$monitorOrder"
+                ;;
+            "restore") # Turn on the monitors from a particular configuration
+                monitorCfg="$(getMonitorsConfiguration)"
+                buildXrenderCmd "$monitorCfg" xrandrCmd
+                echo $xrandrCmd
+                eval "$xrandrCmd"
+                ;;
+            "show")
+                getConnectedMonitors
+                ;;
+            "test")
+                echo "Nothing"
+                ;;
+            *)
+                echo "Unknown parameter '$1'"
+                printHelp
+                exit 1
+                ;;
+        esac
+        shift
+    done
+}
+
+function main() {
+    parseArguments $*
+
+}
+
+assertXrandrExistance
+main $*
+exit 0
