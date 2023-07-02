@@ -7,7 +7,10 @@
 time=$(date +%Y-%m-%d_%H-%M-%S)
 delay=14
 sleep 0.3
-xdotool type --delay $delay "$time"
+output=$(xdotool type --clearmodifiers --delay $delay "$time")
+result=$?
+echo -e "${time} ${result}" >> /home/neurosys/.dbg_xdotool 
+echo -e "$output" >> /home/neurosys/.dbg_xdotool 
 
 
 
