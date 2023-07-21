@@ -224,7 +224,7 @@ function printHelp() {
         config      Generates a config for the connected monitors
         cycle=MON   Prompts the user to enter a monitor which will be cycled, or uses the monitor provided
         help        Displays this help text
-        reorder     Prompts the user for a custom order for the connected monitors.
+        custom      Prompts the user for a custom order for the connected monitors.
         show        Lists connected monitors
     "
 
