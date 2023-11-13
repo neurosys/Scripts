@@ -1,3 +1,13 @@
 #!/bin/bash
 
+if [[ "$0" -eq "NOCTRL" ]]
+then
+    # We may have caps lock on, so we try to turn it off
+    which xdotool > /dev/null 
+    if [[ $? -eq 0 ]]
+    then
+        xdotool key Caps_Lock
+    fi
+fi
+
 setxkbmap -layout us -option ctrl:nocaps
