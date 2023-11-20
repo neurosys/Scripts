@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [[ "$0" -eq "NOCTRL" ]]
+if [[ "$0" == "NOCTRL" ]]
 then
     # We may have caps lock on, so we try to turn it off
     which xdotool > /dev/null 
