@@ -21,6 +21,8 @@
 configFile=~/.mymonitors
 MIN_NR_OF_ARGS=1
 PROJECT_NAME=xmon
+DEBUG=false
+EXECUTE=true
 
 function assertXrandrExistance() {
     which xrandr &> /dev/null
@@ -43,11 +45,24 @@ function getMonitorsConfiguration() {
     fi
 }
 
+function execWithDebug()
+{
+    local cmd="$1"
+    if [[ "$DEBUG" == "true" ]]
+    then
+        echo "$cmd"
+    fi
+    if [[ "$EXECUTE" == "true" ]]
+    then
+        eval "$cmd"
+    fi
+}
 
 
 function turnOffMonitor() {
     local name=$1
-    xrandr --output $name --off
+    local cmd="xrandr --output $name --off"
+    execWithDebug "$cmd"
 }
 
 function getParamForState() {
@@ -217,15 +232,20 @@ function buildConfigForMonitors() {
 
 function printHelp() {
     helpMsg="
-    ${PROJECT_NAME} <CMD> [OPTIONS]
+    ${PROJECT_NAME} [OPTIONS] <CMD> <cmd-params>
 
     CMD
-        auto        Puts all connected monitors on in whatever order they are connected.
-        config      Generates a config for the connected monitors
-        cycle=MON   Prompts the user to enter a monitor which will be cycled, or uses the monitor provided
-        help        Displays this help text
-        custom      Prompts the user for a custom order for the connected monitors.
-        show        Lists connected monitors
+        auto           Puts all connected monitors on in whatever order they are connected.
+        generate-cfg   Outputs to stdout a default config for the connected monitors.
+        cycle [idx]    Prompts the user to enter a monitor which will be cycled or uses <idx>
+        custom         Prompts the user for a custom order for the connected monitors.
+        help           Displays this help text
+        restore        Sets up the monitors using a config file ${configFile}
+        show           Lists connected monitors
+
+    OPTIONS
+        --debug        Shows the xrandr commands before executing them
+        --debug-only   Does not execute the xrandr commands, only shows them  
     "
 
     echo "$helpMsg"
@@ -253,18 +273,27 @@ function autoOrder() {
 # cycleMonitorPower tur off a monitor, sleep and then power it back on
 function cycleMonitorPower() {
     local monitors="$1"
+    # sleep duration in seconds
     local sleepDuration=${2:-3}
-
+    local choice=${3:--1}
+    
     local idx=1
-    while IFS=" " read name state
-    do
-        echo "${idx}. ${name}"
-        idx=$((idx + 1))
-    done < <(echo "$monitors")
-    read -p "Choose monitor to cycle: " id
+    local id=""
+    if [[ $choice -eq -1 ]]
+    then
+        echo "DEXTRACE:>> no existing choice"
+        while IFS=" " read name state
+        do
+            echo "${idx}. ${name}"
+            idx=$((idx + 1))
+        done < <(echo "$monitors")
+        read -p "Choose monitor to cycle: " id
+    else
+        id=$choice
+    fi
 
-    idx=1
     local monitorName=""
+    idx=1
     while IFS=" " read name state
     do
         if [[ $idx -eq $id ]]
@@ -274,10 +303,9 @@ function cycleMonitorPower() {
         idx=$((idx + 1))
     done < <(echo "$monitors")
 
-    echo "cycling monitor $monitorName"
-    xrandr --output $monitorName --off
+    echo "cycling monitor '$monitorName'"
+    execWithDebug "xrandr --output $monitorName --off"
     sleep $sleepDuration
-
 
     buildXrenderCmd "$monitors" xCmd
     eval "$xCmd"
@@ -296,17 +324,24 @@ function parseArguments() {
             "auto") # Turn on all monitors
                 monitorNames=$(getConnectedMonitors)
                 autoOrder "$monitorNames" xrandrCmd
-                echo $xrandrCmd
-                eval "$xrandrCmd"
+                execWithDebug "$xrandrCmd"
                 ;;
-            "config")
-                monitorCfg=$(getMonitorsConfiguration)
-                echo "$monitorCfg"
-                eval "$monitorCfg"
+            "generate-cfg")
+                monitorNames=$(getConnectedMonitors)
+                for i in $monitorNames
+                do
+                    echo "$i on"
+                done
                 ;;
             "cycle")
+                choice=-1
+                if [[ -n "$2" ]]
+                then
+                    choice=$2
+                    shift
+                fi
                 monitorCfg=$(getMonitorsConfiguration)
-                cycleMonitorPower "$monitorCfg"
+                cycleMonitorPower "$monitorCfg" 3 $choice
                 ;;
             "cycle=*")
                 ;;
@@ -318,21 +353,35 @@ function parseArguments() {
                 monitorNames=$(getConnectedMonitors)
                 # Turn on just a subset of monitors and put them in a particular order
                 customLayout "$monitorNames" monitorOrder
-                echo $monitorOrder
-                eval "$monitorOrder"
+                execWithDebug "$monitorOrder"
                 ;;
             "restore") # Turn on the monitors from a particular configuration
                 monitorCfg="$(getMonitorsConfiguration)"
+                #echo "DEXTRACE:>> monitorCfg=$monitorCfg"
                 buildXrenderCmd "$monitorCfg" xrandrCmd
-                echo $xrandrCmd
-                eval "$xrandrCmd"
+                execWithDebug "$xrandrCmd"
                 ;;
             "show")
-                getConnectedMonitors
+                monitoNames=$(getConnectedMonitors)
+                local idx=1
+                for i in $monitoNames
+                do
+                    echo "${idx}. $i"
+                    idx=$((idx + 1))
+                done
                 ;;
             "test")
                 echo "Nothing"
                 ;;
+            "--debug")
+                DEBUG=true
+                EXECUTE=true
+                ;;
+            "--debug-only")
+                DEBUG=true
+                EXECUTE=false
+                ;;
+
             *)
                 echo "Unknown parameter '$1'"
                 printHelp
