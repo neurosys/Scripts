@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+# This is to avoid some strange crashes that affect code on x11
+# https://stackoverflow.com/questions/78584630/visual-studio-code-crashes-with-errorprocess-memory-range-cc75-read-out
+code --in-process-gpu
+
