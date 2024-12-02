@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+echo "Start"
+
+SESSION=${1:-"hidden"}
+
+tmux -2 -L${SESSION} new-session -d -s ${SESSION} -n calc
+
+if [[ "$sesion" == "hidden" ]]; then
+    tmux -L${SESSION} send-keys "ipython3" C-m
+    tmux -L${SESSION} send-keys "from math import sqrt, pi, sin, cos, tan, asin, acos, atan" C-m
+    tmux -L${SESSION} send-keys "d2r=pi/180" C-m
+fi
+
+tmux -L${SESSION} attach
