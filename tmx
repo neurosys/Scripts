@@ -1,15 +1,48 @@
 #!/usr/bin/env bash
 
-echo "Start"
+# Launches a hidden tmux session depending on the terminal
 
-SESSION=${1:-"hidden"}
+#SESSION=${1:-hidden}
+SESSION="hidden"
+SOCKET="hidden"
+PANE=""
 
-tmux -2 -L${SESSION} new-session -d -s ${SESSION} -n calc
-
-if [[ "$sesion" == "hidden" ]]; then
-    tmux -L${SESSION} send-keys "ipython3" C-m
-    tmux -L${SESSION} send-keys "from math import sqrt, pi, sin, cos, tan, asin, acos, atan" C-m
-    tmux -L${SESSION} send-keys "d2r=pi/180" C-m
+# Guake
+if [[ -n "$GUAKE_TAB_UUID" ]]
+then
+    # This is a Guake terminal
+    SOCKET="Guake"
+    # Is this the first session? if so, we have special commands for it
+    noGuakeSessions=$(tmux -L ${SOCKET} list-sessions 2>&1 | grep -q "System")
+    if [[ $? -eq 1 ]]
+    then
+        # This is the first session
+        SESSION="System"
+    else
+        SESSION=$(echo "$GUAKE_TAB_UUID" | cut -c 1-8)
+    fi
 fi
 
-tmux -L${SESSION} attach
+# Launch the session in a detached state so that we can send commands
+tmux -2 -L ${SOCKET} new-session -d -s ${SESSION}
+
+if [[ "$SESSION" == "System" ]]
+then
+    if [[ -n "$GUAKE_TAB_UUID" ]]
+    then
+        # Do this only on guake, because this won't be resized afterwards
+        tmux -L ${SOCKET} send-keys "task calendar" C-m
+    fi
+fi
+
+if [[ "$SESSION" == "hidden" ]]
+then
+    # Launch ipython
+    tmux -L ${SOCKET} send-keys "ipython3" C-m
+    tmux -L ${SOCKET} send-keys "from math import sqrt, pi, sin, cos, tan, asin, acos, atan" C-m
+    tmux -L ${SOCKET} send-keys "import os" C-m
+    tmux -L ${SOCKET} send-keys "d2r=pi/180" C-m
+    # tmux -L ${SOCKET} send-keys "os.system('task calendar')" C-m
+fi
+
+tmux -L ${SOCKET} attach
