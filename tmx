@@ -23,8 +23,45 @@ then
     fi
 fi
 
+# Alacritty
+if [[ -n "$ALACRITTY_SOCKET" ]]
+then
+    # This is an Alacritty terminal
+    SOCKET="alacritty"
+    SESSION="calc"
+    noAlacrittyCalcSessions=$(tmux -L ${SOCKET} list-sessions 2>&1 | grep -q ${SESSION})
+    if [[ $? -eq 1 ]]
+    then
+        echo "DEXTRACE:>> No tmux session named calc"
+        # No tmux session named calc (terminal, by default has title "Alacritty")
+        #marks=$(i3-msg -t get_marks)
+        i3-msg '[title="^Alacritty"]' mark scratch1
+        i3-msg '[con_mark="scratch1"]' move scratchpad
+        i3-msg '[con_mark="scratch1"]' scratchpad show
+        i3-msg '[con_mark="scratch1"]' scratchpad show
+        #
+        # i3-msg '[title="^calc"]' move scratchpad
+        # i3-msg scratchpad show
+        #
+        # i3-msg '[title="^calc"]' mark scratch1 
+        # i3-msg '[con_mark="scratch1"]' move scratchpad
+        # i3-msg scratchpad show
+        # i3-msg unmark scratch1
+        #
+    else
+        unset SESSION
+    fi
+fi
+
 # Launch the session in a detached state so that we can send commands
-tmux -2 -L ${SOCKET} new-session -d -s ${SESSION}
+if [[ -z "$SESSION" ]]
+then
+    echo "Empty session"
+    tmux -2 -L ${SOCKET} new-session -d
+else
+    echo "Session $SESSION"
+    tmux -2 -L ${SOCKET} new-session -d -s ${SESSION}
+fi
 
 if [[ "$SESSION" == "System" ]]
 then
@@ -35,14 +72,18 @@ then
     fi
 fi
 
-if [[ "$SESSION" == "hidden" ]]
+
+if [[ "$SESSION" == "calc" ]]
 then
+    echo "calc session"
     # Launch ipython
+    set -x
     tmux -L ${SOCKET} send-keys "ipython3" C-m
     tmux -L ${SOCKET} send-keys "from math import sqrt, pi, sin, cos, tan, asin, acos, atan" C-m
     tmux -L ${SOCKET} send-keys "import os" C-m
     tmux -L ${SOCKET} send-keys "d2r=pi/180" C-m
-    # tmux -L ${SOCKET} send-keys "os.system('task calendar')" C-m
+    tmux -L ${SOCKET} send-keys "os.system('task calendar')" C-m
+    set +x
 fi
 
 tmux -L ${SOCKET} attach
