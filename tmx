@@ -20,6 +20,9 @@ then
         SESSION="System"
     else
         SESSION=$(echo "$GUAKE_TAB_UUID" | cut -c 1-8)
+        # We have a session set already, dont' mess with the rest or we'll end up with tons of sessions
+        # when we do configuration reloads
+        exit 0
     fi
 fi
 
@@ -50,6 +53,7 @@ then
         #
     else
         unset SESSION
+        exit 0
     fi
 fi
 
