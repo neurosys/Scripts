@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+function help() {
+    echo "This script converts .adoc to .html and opens it in surf browser. (make sure you have it installed)"
+    echo "Usage: mydoc <.adoc file>"
+    echo ""
+}
+
+# Check to ensure required commands are available (surf and asciidoctor)
+which surf >/dev/null 2>&1 || { echo >&2 "Surf is not installed. Aborting."; exit 1; }
+which asciidoctor >/dev/null 2>&1 || { echo >&2 "Asciidoctor is not installed. Aborting."; exit 2; }
+
+if [[ -z "$1" ]]; then
+    echo "No .adoc file provided."
+    help
+    exit 1
+fi
+
+grep -e '\.adoc$' <<< "$1" >/dev/null || { echo "The file must have a .adoc extension."; exit 3; }
+
+if [[ ! -f "$1" ]]; then
+    echo "File '$1' does not exist."
+    exit 4
+fi
+
+output_file="${1%.adoc}.html"
+
+asciidoctor "$1" -o "$output_file"
+if [[ $? -ne 0 ]]; then
+    echo "Failed to convert '$1' to HTML."
+    exit 5
+fi
+
+nohup surf -z 1.5 "$output_file" &> /dev/null &
