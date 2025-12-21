@@ -1,17 +1,46 @@
 #!/usr/bin/env bash
 
 # usage:
-# timer.sh <seconds> <message>
+# timer.sh <hours>:<minutes>:<seconds> <message>
+# timer.sh <minutes> <message>
+# timer.sh ::<seconds> <message>
 
 if [[ -z $2 ]] ; then
-    echo "Usage: $0 <seconds> <message>"
+    echo "Usage: $0 <minutes>:<seconds> <message>"
     exit 0
 fi
 
-seconds=$1
+which zenity &> /dev/null 
+if [[ $? -ne 0 ]] 
+then
+    echo "This script requires 'zenity' to display the message box."
+    exit 1
+fi
+
+inputTime=$1
 message=$2
 
-limit=$((60 * seconds)) 
+if [[ $inputTime == *:* ]] 
+then
+    minutes=${inputTime%%:*} 
+    seconds=${inputTime##*:} 
+
+    if [[ -z $minutes ]] 
+    then
+        minutes=0 
+    fi
+
+    if [[ -z $seconds ]] 
+    then
+        seconds=0 
+    fi
+
+    inputTime=$((10#$minutes * 60 + 10#$seconds)) 
+else
+    inputTime=$((10#$inputTime * 60)) 
+fi
+
+limit=$((60 * inputTime)) 
 total=$limit
 
 echo "" 
@@ -35,6 +64,7 @@ do
     limit=$((limit - 1)) 
 done 
 
+echo "Finished waiting for $inputTime."
 echo "" 
-notify-send "$message"
+zenity --text="$message" --warning --title="Timer Finished"
 

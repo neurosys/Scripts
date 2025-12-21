@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"syscall"
 	"time"
 )
 
@@ -78,15 +79,52 @@ func createConfig(duration time.Duration) (*Config, error) {
 	return newCfg, nil
 }
 
+var fifoPath = "/tmp/pomo-go.fifo"
+
+// var fifo *os.File
+
+func OpenPipe() (pipe *os.File) {
+	syscall.Mkfifo(fifoPath, 0666)
+	fifo, err := os.OpenFile(fifoPath, os.O_RDWR, os.ModeNamedPipe)
+	if err != nil {
+		fmt.Errorf("unable to open fifo %q: %w", fifoPath, err)
+		panic(err)
+	}
+	return fifo
+}
+
+func ReadPipe(pipe *os.File) string {
+	buf := make([]byte, 1024)
+
+	for {
+		msg, err := pipe.Read(buf)
+		if err != nil {
+			fmt.Errorf("unable to read from fifo %q: %w", fifoPath, err)
+			panic(err)
+		}
+
+		fmt.Printf("Read %d bytes: %q\n", msg, string(buf[:msg]))
+	}
+}
+
 func main() {
 	var err error
 	var cfg *Config
 	// help()
+	cfg, err = loadConfig(confFile)
+	if err != nil {
+		fmt.Printf("No existing config found, will create a new one on left click\n")
+	}
+
+	pipe := OpenPipe()
+	//pipe.WriteString("update\n")
+	ReadPipe(pipe)
 
 	mouseBtn, ok := os.LookupEnv(MOUSE_CLICKED)
+	fmt.Printf("DEXTRACE:>> mouseBtn=%q ok=%v\n", mouseBtn, ok)
 	if !ok {
 		// No mouse button has been clicked, just show how long has passed since start
-		cfg, err := loadConfig(confFile)
+		//cfg, err := loadConfig(confFile)
 		if err == nil {
 			displayStatus(cfg)
 			return
@@ -99,12 +137,13 @@ func main() {
 	case MOUSE_LEFT:
 		cfg, err = createConfig(defaultDuration)
 	case MOUSE_MID:
+		fmt.Printf("Middle button clicked\n")
 	case MOUSE_RIGHT:
-		// remove config
+		fmt.Printf("Right button clicked\n")
 	case MOUSE_SCROLL_UP:
-		// edit default value in config
+		fmt.Printf("Scroll up\n")
 	case MOUSE_SCROLL_DOWN:
-		// edit default value in config
+		fmt.Printf("Scroll down\n")
 	default:
 		err = fmt.Errorf("unknown value for %q = %q", MOUSE_CLICKED, mouseBtn)
 	}
