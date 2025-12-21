@@ -12,4 +12,5 @@ fi
 # -a to batch download (one url per line)
 # -N to specify the number of concurrent fragments (default 1) 
 
-yt-dlp --merge-output-format mp4/mkv $*
+# "en.*" to get all english subtitles (en, en-US, en-GB, etc)
+yt-dlp -t mp4 --write-subs --sub-langs 'en' --merge-output-format  mp4/mkv $*
