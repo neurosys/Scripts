@@ -48,10 +48,10 @@ echo ""
 while [[ 0 -le $limit ]] 
 do 
     # Clear the line
-    for i in $(seq 1 255) 
+    for _ in $(seq 1 255) 
     do
         echo -en '\b' 
-     done 
+    done 
 
     minutes=$((limit / 60))
     seconds=$((limit % 60))
