@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+# Attach to a tmux interactively
+
+set -e 
+
+# Check for requirements
+function checkRequiredProgram() {
+    local program="$1"
+
+    if ! command -v "${program}" &> /dev/null 
+    then
+        echo -e "Err: ${program} not found"
+    fi
+}
+
+
+checkRequiredProgram fzf
+checkRequiredProgram tmux
+
+
+TMP_DIR=/tmp
+sockets=$(ls $TMP_DIR/tmux-${UID}/)
+
+chosenSession=$(echo "$sockets" | fzf --preview='tmux -L {} list-sessions' --no-input)
+tmux -L $chosenSession attach
+
