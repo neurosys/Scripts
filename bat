@@ -1,3 +1,8 @@
 #!/usr/bin/env bash
 
-batcat $*
+if command -v batcat &> /dev/null
+then
+    batcat $*
+else 
+    bat $*
+fi
