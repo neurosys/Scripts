@@ -47,5 +47,5 @@ TMP_DIR=/tmp
 sockets=$(ls $TMP_DIR/tmux-${UID}/)
 
 chosenSession=$(echo "$sockets" | fzf -1 --preview='ses="$(tmux -L {} list-sessions 2>&1)" ; if [[ $ses =~ "no server running on" ]] ; then echo "\e[1;31mNo sessions \e[0m" ; else echo "\e[1;32m$ses\e[0m" ; fi' --no-input)
-tmux -L $chosenSession new -A
+tmux -u -L $chosenSession new -A
 
